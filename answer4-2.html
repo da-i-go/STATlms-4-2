@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta name="robots" content="noindex, nofollow" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>診断結果</title>
+    <link rel="stylesheet" href="css/answer.css" />
+    <!-- 
+    <script>
+      // 未認証ならログインへ
+      if (sessionStorage.getItem("authenticated") !== "true") {
+        location.replace("index.html");
+      }
+    </script>
+    -->
+  </head>
+
+  <body>
+    <h1>診断結果</h1>
+
+    <section class="result-section">
+      <h2>■ 診断名</h2>
+      <p>大脳鎌や小脳テント 近傍に血腫</p>
+    </section>
+
+    <section class="result-section">
+      <h2>■ Key画像</h2>
+      <div class="carousel-container">
+        <div class="carousel-wrapper">
+          <button class="carousel-button prev">❮</button>
+          <div class="carousel-track-container">
+            <ul class="carousel-track">
+            
+              <li class="carousel-slide">
+                <img src="key-images/key.png" alt="キー画像の説明" />
+                <!-- "ファイル名/画像名" -->
+                <p class="caption">大脳鎌・左側の小脳テントが通常より不均一に厚くみえる。</p>
+                <p class="caption">すなわち大脳鎌や小脳テント 近傍に血腫がみられる。</p>
+                <!-- 画像の下につける説明 -->
+              </li>
+              
+            </ul>
+          </div>
+          <button class="carousel-button next">❯</button>
+        </div>
+        <div class="carousel-indicators"></div>
+      </div>
+    </section>
+
+    <!-- 問題一覧へ戻る -->
+    <div class="back-button">
+      <a href="https://da-i-go.github.io/STATlms-home/">問題一覧へ戻る</a>
+    </div>
+
+    <!-- スライド操作スクリプト -->
+    <script>
+      const track = document.querySelector(".carousel-track");
+      const slides = Array.from(track.children);
+      const nextButton = document.querySelector(".carousel-button.next");
+      const prevButton = document.querySelector(".carousel-button.prev");
+      const indicatorsContainer = document.querySelector(".carousel-indicators");
+
+      // インジケーター生成
+      slides.forEach((_, index) => {
+        const dot = document.createElement("span");
+        dot.classList.add("indicator");
+        if (index === 0) dot.classList.add("active");
+        dot.addEventListener("click", () => {
+          currentIndex = index;
+          updateSlidePosition();
+        });
+        indicatorsContainer.appendChild(dot);
+      });
+
+      const indicators = indicatorsContainer.querySelectorAll(".indicator");
+      let currentIndex = 0;
+
+      function updateSlidePosition() {
+        const slideWidth = slides[0].getBoundingClientRect().width;
+        track.style.transform = "translateX(-" + slideWidth * currentIndex + "px)";
+        indicators.forEach((dot, index) => {
+          dot.classList.toggle("active", index === currentIndex);
+        });
+      }
+
+      nextButton.addEventListener("click", () => {
+        currentIndex = (currentIndex + 1) % slides.length;
+        updateSlidePosition();
+      });
+
+      prevButton.addEventListener("click", () => {
+        currentIndex = (currentIndex - 1 + slides.length) % slides.length;
+        updateSlidePosition();
+      });
+
+      // フリック対応
+      let startX = 0;
+      track.addEventListener("touchstart", (e) => {
+        startX = e.touches[0].clientX;
+      });
+
+      track.addEventListener("touchend", (e) => {
+        const endX = e.changedTouches[0].clientX;
+        const diff = endX - startX;
+        if (diff > 50) {
+          currentIndex = (currentIndex - 1 + slides.length) % slides.length;
+          updateSlidePosition();
+        } else if (diff < -50) {
+          currentIndex = (currentIndex + 1) % slides.length;
+          updateSlidePosition();
+        }
+      });
+
+      window.addEventListener("load", updateSlidePosition);
+      window.addEventListener("resize", updateSlidePosition);
+    </script>
+
+    <!-- スプレッドシート記録スクリプト -->
+    <script>
+      (function () {
+        if (sessionStorage.getItem("authenticated") !== "true") return;
+        const API =
+          "https://script.google.com/macros/s/AKfycbx8b_17MyBUxJtJhJ21KFSfJguUBSGKHBg-WjLHHylbqho1pFjZKIMjvqlMWzUWNFcC/exec"; // GASのURL
+        const uid = sessionStorage.getItem("uid") || "";
+        const problemId = "4-2"; // 問題番号に変える（変更を忘れないこと）
+        const page = location.pathname + location.search;
+
+        fetch(API + "?route=done", {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({ uid, problemId, page }),
+        }).catch(console.warn);
+      })();
+    </script>
+  </body>
+</html>
